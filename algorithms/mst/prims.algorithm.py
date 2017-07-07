@@ -18,6 +18,7 @@ adding the cheapest possible connection from the tree to another vertex.
 from context import structures
 import sys
 
+import unittest
 from structures.heap.binary_heap import PriorityQueue
 
 
@@ -37,3 +38,10 @@ def prim(graph, start, distance):
                 # set v's parent to u in the SOLUTION tree.
                 pq.decreaseKey(v, d)
 
+
+class TestPrimsAlgorithm(unittest.TestCase):
+    def testDummy(self):
+        pass
+
+if __name__ == '__main__':
+    unittest.main()
