@@ -19,9 +19,11 @@ def rightChild(i):
 
 
 class BinaryHeap:
-    def __init__(self):
+    def __init__(self, fn=lambda parent_, child_: (parent_ < child_)):
         self.heap = ["start"]  # we skip the first position of the array for easy numbering
         self.size_ = 0
+        # condition of heap for no change to happen. default is min heap
+        self.fn = fn
 
     def __len__(self):
         """Implement the len operator"""
@@ -68,27 +70,33 @@ class BinaryHeap:
             self.percolateDown(bottomRightParent)
             bottomRightParent -= 1
 
-    def swapIfBigger(self, i, j):
+    def swapDown(self, i, j):
         """
         Swap entries between i and j position in the heap if
-        heap[i] > heap[j]
+        heap[i] > heap[j] for a min heap
         :param :int i: ith position in heap
         :param :int j: jth position in heap
-        :return: 
+        :return :boolean : if a swap was made or not
         """
-        if self.heap[i] > self.heap[j]:
+        if self.fn(self.heap[j], self.heap[i]):
             self.heap[j], self.heap[i] = self.heap[i], self.heap[j]
+            return True
+        else:
+            return False
 
-    def swapIfLess(self, i, j):
+    def swapUp(self, i, j):
         """
         Swap entries between i and j position in the heap if
-        heap[i] > heap[j]
+        heap[i] < heap[j]
         :param :int i: ith position in heap
         :param :int j: jth position in heap
-        :return: 
+        :return :boolean : if a swap was made or not
         """
-        if self.heap[i] < self.heap[j]:
+        if self.fn(self.heap[i], self.heap[j]):
             self.heap[j], self.heap[i] = self.heap[i], self.heap[j]
+            return True
+        else:
+            return False
 
     def percolateUp(self, i):
         """
@@ -96,8 +104,9 @@ class BinaryHeap:
         :param :int i: 
         :return: 
         """
-        while not isRoot(i):
-            self.swapIfLess(i, parent(i))
+        swapped = True
+        while not isRoot(i) and swapped:
+            swapped = self.swapUp(i, parent(i))
             i = parent(i)
 
     def percolateDown(self, i):
@@ -106,9 +115,10 @@ class BinaryHeap:
         :param :int i: 
         :return: 
         """
-        while not self.isLeaf(i):
+        swapped = True
+        while not self.isLeaf(i) and swapped:
             minChild = self.minChild(i)  # get the smaller of the children
-            self.swapIfBigger(i, minChild)  # bubble i down
+            swapped = self.swapDown(i, minChild)  # bubble i down
             i = minChild
 
     def insert(self, element):
@@ -128,7 +138,9 @@ class BinaryHeap:
         :return: 
         """
         if rightChild(i) <= self.size_:  # both children exist
-            if self.heap[rightChild(i)] < self.heap[leftChild(i)]:
+            if self.fn(self.heap[rightChild(i)], self.heap[leftChild(i)]):
+                # which is smaller / bigger depending on heap condition
+                # the one that satisfies the heap condition better is selected
                 return rightChild(i)
             else:
                 return leftChild(i)
@@ -176,45 +188,56 @@ class PriorityQueue(BinaryHeap):
 
 class TestBinaryHeap(unittest.TestCase):
     def setUp(self):
-        self.theHeap = PriorityQueue()
-        self.pHeap = PriorityQueue()
-        self.theHeap.insert((4, 'x'))
-        self.theHeap.insert((3, 'y'))
-        self.theHeap.insert((5, 'z'))
-        self.theHeap.insert((6, 'a'))
-        self.theHeap.insert((2, 'd'))
+        self.minHeap = PriorityQueue()
+        self.maxHeap = PriorityQueue(fn=lambda x, y: x > y)
+        self.minHeap.insert((4, 'x'))
+        self.minHeap.insert((3, 'y'))
+        self.minHeap.insert((5, 'z'))
+        self.minHeap.insert((6, 'a'))
+        self.minHeap.insert((2, 'd'))
+
+        self.maxHeap.insert((4, 'x'))
+        self.maxHeap.insert((3, 'y'))
+        self.maxHeap.insert((5, 'z'))
+        self.maxHeap.insert((6, 'a'))
+        self.maxHeap.insert((2, 'd'))
 
     def testInsert(self):
-        self.assertEqual(len(self.theHeap), 5, "Items in Heap are not the correct number")
+        self.assertEqual(len(self.minHeap), 5, "Items in Heap are not the correct number")
 
     def testInsertCorrectPosition(self):
-        self.theHeap.insert((1, 'x'))
-        self.assertEqual(self.theHeap[1], (1, 'x'), "the element inserted did not bubble to the correct position")
+        self.minHeap.insert((1, 'x'))
+        self.assertEqual(self.minHeap[1], (1, 'x'), "the element inserted did not bubble to the correct position")
 
     def testDeleteRoot(self):
-        root = self.theHeap.deleteRoot()
+        root = self.minHeap.deleteRoot()
         self.assertEqual(root, (2, 'd'), "the correct element was not deleted")
-        self.assertEqual(len(self.theHeap), 4, "Items in Heap are not the correct number")
-        self.assertEqual(self.theHeap[1], (3, 'y'), "the element inserted did not bubble to the correct position")
-        self.assertEqual(self.theHeap[2], (4, 'x'), "the element inserted did not bubble to the correct position")
+        self.assertEqual(len(self.minHeap), 4, "Items in Heap are not the correct number")
+        self.assertEqual(self.minHeap[1], (3, 'y'), "the element inserted did not bubble to the correct position")
+        self.assertEqual(self.minHeap[2], (4, 'x'), "the element inserted did not bubble to the correct position")
+
+        root = self.maxHeap.deleteRoot()
+        self.assertEqual(root, (6, 'a'), "the correct element was not deleted")
+        print(self.maxHeap)
+        self.assertEqual(self.maxHeap[1], (5, 'z'), "the element inserted did not bubble to the correct position")
 
     def testHeapify(self):
         h = [6, 5, 4, 3, 2, 1]
-        self.theHeap.heapify(h)
-        self.assertEqual(self.theHeap.heap, ["start", 1, 2, 4, 3, 5, 6], "the heap was not created correctly")
+        self.minHeap.heapify(h)
+        self.assertEqual(self.minHeap.heap, ["start", 1, 2, 4, 3, 5, 6], "the heap was not created correctly")
 
     def testIdentifyLeafs(self):
-        self.assertTrue(self.theHeap.isLeaf(3))
-        self.assertTrue(self.theHeap.isLeaf(4))
-        self.assertTrue(self.theHeap.isLeaf(5))
-        self.assertFalse(self.theHeap.isLeaf(2))
+        self.assertTrue(self.minHeap.isLeaf(3))
+        self.assertTrue(self.minHeap.isLeaf(4))
+        self.assertTrue(self.minHeap.isLeaf(5))
+        self.assertFalse(self.minHeap.isLeaf(2))
 
     def testFindKey(self):
-        self.assertEqual(self.theHeap.findKey('z'), 3)
+        self.assertEqual(self.minHeap.findKey('z'), 3)
 
     def testDecreaseKey(self):
-        self.theHeap.decreaseKey('z', 1)
-        self.assertEqual(self.theHeap.findKey('z'), 1)
+        self.minHeap.decreaseKey('z', 1)
+        self.assertEqual(self.minHeap.findKey('z'), 1)
 
 
 if __name__ == '__main__':
