@@ -48,6 +48,13 @@ class BinaryHeap:
             raise StopIteration
         return self.heap[self.current_index]
 
+    def __contains__(self, item):
+        key = self.findItem(item)
+        if key is not None:
+            return True
+        else:
+            return False
+
     def isLeaf(self, i):
         return leftChild(i) > self.size_  # it has a left child
 
@@ -162,18 +169,24 @@ class BinaryHeap:
         self.percolateDown(1)  # bubble the root to the correct position
         return rootValue
 
+    def findItem(self, whatToFind):
+        for i in range(1, len(self.heap)):
+            if self.heap[i] == whatToFind:
+                return i
+        return None
+
 
 class PriorityQueue(BinaryHeap):
     """It assumes that the first entry of the element in the heap is a key"""
 
     def __contains__(self, item):
-        key = self.findKey(item)
+        key = self.findItem(item)
         if key is not None:
             return True
         else:
             return False
 
-    def findKey(self, whatToFind):
+    def findItem(self, whatToFind):
         for i in range(1, len(self.heap)):
             if self.heap[i][1] == whatToFind:
                 return i
@@ -187,7 +200,7 @@ class PriorityQueue(BinaryHeap):
         :param newPriority: 
         :return :boolean : True if key was found 
         """
-        key = self.findKey(whatToFind)
+        key = self.findItem(whatToFind)
         if key is not None:
             oldPriority = self.heap[key][0]
             if self.fn(newPriority, oldPriority):
@@ -245,18 +258,18 @@ class TestBinaryHeap(unittest.TestCase):
         self.assertFalse(self.minHeap.isLeaf(2))
 
     def testFindKey(self):
-        self.assertEqual(self.minHeap.findKey('z'), 3)
+        self.assertEqual(self.minHeap.findItem('z'), 3)
 
     def testDecreaseKey(self):
         result = self.minHeap.decreaseKey('z', 1)
-        z_index = self.minHeap.findKey('z')
+        z_index = self.minHeap.findItem('z')
         self.assertEqual(self.minHeap[z_index][0], 1)  # new priority
-        self.assertEqual(self.minHeap.findKey('z'), 1)  # new position
+        self.assertEqual(self.minHeap.findItem('z'), 1)  # new position
         self.assertTrue(result)
 
     def testDecreaseKeyWithWrongPriority(self):
         result = self.minHeap.decreaseKey('z', 6)  # make bigger in a min-Heap
-        z_index = self.minHeap.findKey('z')
+        z_index = self.minHeap.findItem('z')
         self.assertEqual(self.minHeap[z_index][0], 5)  # keep previous
         self.assertFalse(result)
 
