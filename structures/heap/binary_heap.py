@@ -180,10 +180,23 @@ class PriorityQueue(BinaryHeap):
         return None
 
     def decreaseKey(self, whatToFind, newPriority):
+        """
+        Set a key to a new lower priority. If found True returns else False
+        If priority is not "Better" in the heap-condition sense no change is made
+        :param whatToFind: 
+        :param newPriority: 
+        :return :boolean : True if key was found 
+        """
         key = self.findKey(whatToFind)
         if key is not None:
-            self.heap[key] = (newPriority, self.heap[key][1])
-            self.percolateUp(key)  # with the new decreased key it should bubble up
+            oldPriority = self.heap[key][0]
+            if self.fn(newPriority, oldPriority):
+                # newPriority <smaller, larger> (depending on heap condition)
+                self.heap[key] = (newPriority, self.heap[key][1])
+                self.percolateUp(key)  # with the new decreased key it should bubble up
+                return True
+        else:
+            return False
 
 
 class TestBinaryHeap(unittest.TestCase):
@@ -218,7 +231,6 @@ class TestBinaryHeap(unittest.TestCase):
 
         root = self.maxHeap.deleteRoot()
         self.assertEqual(root, (6, 'a'), "the correct element was not deleted")
-        print(self.maxHeap)
         self.assertEqual(self.maxHeap[1], (5, 'z'), "the element inserted did not bubble to the correct position")
 
     def testHeapify(self):
@@ -236,8 +248,17 @@ class TestBinaryHeap(unittest.TestCase):
         self.assertEqual(self.minHeap.findKey('z'), 3)
 
     def testDecreaseKey(self):
-        self.minHeap.decreaseKey('z', 1)
-        self.assertEqual(self.minHeap.findKey('z'), 1)
+        result = self.minHeap.decreaseKey('z', 1)
+        z_index = self.minHeap.findKey('z')
+        self.assertEqual(self.minHeap[z_index][0], 1)  # new priority
+        self.assertEqual(self.minHeap.findKey('z'), 1)  # new position
+        self.assertTrue(result)
+
+    def testDecreaseKeyWithWrongPriority(self):
+        result = self.minHeap.decreaseKey('z', 6)  # make bigger in a min-Heap
+        z_index = self.minHeap.findKey('z')
+        self.assertEqual(self.minHeap[z_index][0], 5)  # keep previous
+        self.assertFalse(result)
 
 
 if __name__ == '__main__':

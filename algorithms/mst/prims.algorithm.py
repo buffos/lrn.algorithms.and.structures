@@ -34,9 +34,7 @@ def prim(graph, start, distance):
         for v in u.connections():
             d = distance(u, v)
             v_index = pq.findKey(v)
-            if v_index and d < pq[v_index][0]: # is closer than previous distance
-                # set v's parent to u in the SOLUTION tree.
-                pq.decreaseKey(v, d)
+            pq.decreaseKey(v, d) # decrease distance if its lower and v in pq
 
 
 class TestPrimsAlgorithm(unittest.TestCase):
