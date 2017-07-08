@@ -33,7 +33,6 @@ def prim(graph, start, distance):
         u = pq.deleteRoot()[1]
         for v in u.connections():
             d = distance(u, v)
-            v_index = pq.findKey(v)
             pq.decreaseKey(v, d) # decrease distance if its lower and v in pq
 
 
